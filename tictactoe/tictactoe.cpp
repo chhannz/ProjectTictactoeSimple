@@ -26,10 +26,12 @@ int pilih_kotak(const vector<char>& board);
 int tanyaAngka(int max, int min = 0);
 char pemenang(const vector<char>& board);
 int acak_giliran();
+int komputer_move(const vector<char>& board);
 
 int main(int argc, const char * argv[]) {
 	int nomor;
 	int acak;	
+	int pil_komputer;
 	intro();
 	vector<char> board(MAKS_KOTAK, KOSONG);
 	char player = pilihan_bidak();
@@ -47,9 +49,21 @@ int main(int argc, const char * argv[]) {
 	cout << giliran << "\n\n";
 	
 	while ((pemenang(board) == BELUM) && (pemenang(board) != SERI)) {
-		nomor = pilih_kotak(board);
-		board[nomor] = player;
-		tampilkan_board(board);
+		if (giliran == player) {
+			nomor = pilih_kotak(board);
+			board[nomor] = player;
+			tampilkan_board(board);
+			giliran = musuh;
+		}
+		else if (giliran == musuh) {
+			//cout << "(Ini adalah giliran musuh.)\n";
+			//cout << "Ganti giliran player... \n";
+			pil_komputer = komputer_move(board);
+			cout << "\nPilihan komputer : " << pil_komputer << endl;
+			board[pil_komputer] = musuh;
+			tampilkan_board(board);
+			giliran = player;
+		}
 	}
 	cout << "\nPemenangnya adalah : " << pemenang(board) << endl;
 	cout << "End game !" << endl;
@@ -157,5 +171,17 @@ int acak_giliran() {
 	return acak;
 }
 
+int komputer_move(const vector<char>& board) {
+	int pilihan_komputer;
+	
+	/*move acak*/
+	/*srand(static_cast<unsigned int>(time(0)));
+	do {		
+		pilihan_komputer = rand()%9; //gerak acak
+		
+	} while (board[pilihan_komputer] != KOSONG);
+	*/
+	return pilihan_komputer;
+}
 
 
