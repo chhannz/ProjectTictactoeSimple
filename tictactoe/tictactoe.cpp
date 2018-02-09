@@ -27,10 +27,11 @@ int tanyaAngka(int max, int min = 0);
 char pemenang(const vector<char>& board);
 int acak_giliran();
 int komputer_move(vector<char> board, char musuh);
+int ai_move(vector<char> board, char computer);
 
 int main(int argc, const char * argv[]) {
 	int nomor;
-	int acak;	
+	int acak;
 	int pil_komputer;
 	intro();
 	vector<char> board(MAKS_KOTAK, KOSONG);
@@ -46,8 +47,9 @@ int main(int argc, const char * argv[]) {
 	else {
 		giliran = musuh;
 	}
+
 	cout << giliran << "\n\n";
-	
+
 	while ((pemenang(board) == BELUM) && (pemenang(board) != SERI)) {
 		if (giliran == player) {
 			nomor = pilih_kotak(board);
@@ -58,20 +60,25 @@ int main(int argc, const char * argv[]) {
 		else if (giliran == musuh) {
 			//cout << "(Ini adalah giliran musuh.)\n";
 			//cout << "Ganti giliran player... \n";
-			pil_komputer = komputer_move(board, musuh);
+			pil_komputer = ai_move(board, musuh);
+			//pil_komputer = 1;
 			cout << "\nPilihan komputer : " << pil_komputer << endl;
 			board[pil_komputer] = musuh;
 			tampilkan_board(board);
 			giliran = player;
 		}
+
 	}
-	cout << "\nPemenangnya adalah : " << pemenang(board) << endl;
+
+	if (pemenang(board) == 'S') {
+		cout << "\nHasil permainan adalah seri." << endl;
+	} else cout << "\nPemenangnya adalah : " << pemenang(board) << endl;
 	cout << "End game !" << endl;
+
 	int pause;
 	cin >> pause;
 	return pause;
 }
-
 
 void intro() {
 	cout << "Selamat datang di Tic Tac Toe." << endl;
@@ -90,7 +97,6 @@ char pilihan_bidak() {
 		cin >> pilihan;
 		pilihan = toupper(pilihan);
 	} while (pilihan != X && pilihan != O);
-
 	return pilihan;
 }
 
@@ -100,7 +106,6 @@ char bidak_musuh(char bidak_player) {
 		bidak = O;
 	}
 	else bidak = X;
-
 	return bidak;
 }
 
@@ -121,7 +126,6 @@ int pilih_kotak(const vector<char>& board) {
 			cout << "Kotak tersebut sudah terisi, silakan pilih kotak yang lain !!" << endl;
 		}
 	} while (board[pilihan] != KOSONG);
-
 	return pilihan;
 }
 
@@ -131,28 +135,29 @@ int tanyaAngka(int max, int min) {
 		cout << "\nMasukkan angka antara " << min << " dan " << max << " = ";
 		cin >> angka;
 	} while (angka < min || angka > max);
-
 	return angka;
 }
 
+
+
 char pemenang(const vector<char>& board) {
-	char menang;
+	//char menang;
 	const int DAFTAR_KOTAK_MENANG[8][3] = {
-		{0,1,2},
-		{3,4,5},
-		{6,7,8},
-		{0,3,6},
-		{1,4,7},
-		{2,5,8},
-		{0,4,8},
-		{2,4,6}
+		{ 0,1,2 },
+		{ 3,4,5 },
+		{ 6,7,8 },
+		{ 0,3,6 },
+		{ 1,4,7 },
+		{ 2,5,8 },
+		{ 0,4,8 },
+		{ 2,4,6 }
 	};
+
 	const int TOTAL_KOTAK_MENANG = 8;
 	for (int baris = 0; baris < TOTAL_KOTAK_MENANG; ++baris) {
 		if ((board[DAFTAR_KOTAK_MENANG[baris][0]] != KOSONG) &&
 			(board[DAFTAR_KOTAK_MENANG[baris][0]] == board[DAFTAR_KOTAK_MENANG[baris][1]]) &&
 			(board[DAFTAR_KOTAK_MENANG[baris][1]] == board[DAFTAR_KOTAK_MENANG[baris][2]])) {
-
 			return board[DAFTAR_KOTAK_MENANG[baris][0]];
 		}
 	}
@@ -167,37 +172,88 @@ char pemenang(const vector<char>& board) {
 int acak_giliran() {
 	int acak;
 	srand(static_cast<unsigned int> (time(0)));
-	acak = rand()%2;
+	acak = rand() % 2;
 	return acak;
 }
 
 int komputer_move(vector<char> board, char musuh) {
-	unsigned int pilihan_komputer = 0;
+	/*move acak*/
+	int pilihan_komputer;
+	srand(static_cast<unsigned int>(time(0)));
+	do {
+		pilihan_komputer = rand() % 9; //gerak acak
+	} while (board[pilihan_komputer] != KOSONG);
+
+	return pilihan_komputer;
+	/*end move acak*/
+}
+
+int ai_move(vector<char> board, char computer)
+{
+	unsigned int move = 0;
 	bool ketemu = false;
+	//jika langkah selanjutnya menang
+	while (!ketemu && move < board.size())
+	{
+		if (board[move] == KOSONG)
+		{
+			board[move] = computer;
+			//cek jika menang
+			ketemu = pemenang(board) == computer;
+			board[move] = KOSONG;
+		}
 
-	while (!ketemu && pilihan_komputer < board.size()) {
-		board[pilihan_komputer] = musuh;
-		ketemu = pemenang(board) == musuh;
-		board[pilihan_komputer] = KOSONG;
+		if (!ketemu)
+		{
+			++move;
+		}
 
-		if (!ketemu) {
-			++pilihan_komputer;
+	}
+
+	//hadang pemain
+	if (!ketemu)
+	{
+		move = 0;
+		char human = bidak_musuh(computer);
+		while (!ketemu && move < board.size())
+		{
+			if (board[move] == KOSONG)
+			{
+				board[move] = human;
+				//cek jika pemain menang
+				ketemu = pemenang(board) == human;
+				board[move] = KOSONG;
+			}
+
+			if (!ketemu)
+			{
+				++move;
+			}
 		}
 	}
 
-	if (!ketemu) {
-		pilihan_komputer == 0;
-		
+	//jika tidak ada yang akan menang, move ke best move
+
+	if (!ketemu)
+	{
+		move = 0;
+		unsigned int i = 0;
+		const int BEST_MOVES[] = { 4, 0, 2, 6, 8, 1, 3, 5, 7 };
+
+		while (!ketemu && i <  board.size())
+		{
+			move = BEST_MOVES[i];
+			if (board[move] == KOSONG)
+			{
+				ketemu = true;
+			}
+
+			++i;
+		}
 	}
 
-	/*move acak*/
-	/*srand(static_cast<unsigned int>(time(0)));
-	do {		
-		pilihan_komputer = rand()%9; //gerak acak
-		
-	} while (board[pilihan_komputer] != KOSONG);
-	*/
-	return pilihan_komputer;
+	cout << "Komputer memilih kotak : " << move << endl;
+	return move;
 }
 
 
